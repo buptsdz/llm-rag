@@ -114,38 +114,6 @@ def download_paper(url, output_dir, paper_title, year):
     
     return filename
 
-def score_abstract_with_zhipuai(abstract, user_input):
-    # 使用智谱AI接口评分
-    prompt = f"请评估以下摘要与主题'{user_input}'的相关性：\n\n{abstract}\n\n请给出一个相关性评分（0-1之间），你只需要给出一个0-1之间的数，不需要解释："
-    score_str = get_completion(prompt).strip()
-    
-    try:
-        score = float(score_str)
-        if 0 <= score <= 1:
-            return score
-        else:
-            print(f"得分{score}超出范围，应该在0到1之间。")
-            return None
-    except ValueError:
-        print(f"无法解析评分：{score_str}")
-        return None
-    
-def calculate_average_score(papers, user_input):
-    total_score = 0
-    valid_count = 0
-    
-    print("正在计算内容匹配度...")
-    for paper in papers:
-        score = score_abstract_with_zhipuai(paper['abstract'], user_input)
-        if score is not None:
-            total_score += score
-            valid_count += 1
-    
-    if valid_count > 0:
-        average_score = total_score / valid_count
-        return average_score
-    else:
-        return None
     
 import shutil
 
@@ -165,35 +133,59 @@ def clear_output_directory(output_dir):
             except Exception as e:
                 print(f"删除 {file_path} 时出错: {e}")
 
-def handle_request(user_input, output_dir, site, total_papers):
-    papers = search_papers(user_input, site, total_papers)
-    print(papers)
+def score_abstract_with_zhipuai(abstract, user_input):
+    # 使用智谱AI接口评分
+    prompt = f"请评估以下摘要与用户提问'{user_input}'的相关性：\n\n{abstract}\n\n请给出一个相关性评分（0-1之间），你只需要给出一个0-1之间的数，不需要解释："
+    score_str = get_completion(prompt).strip()
     
-    average_score = calculate_average_score(papers, user_input)
-    if average_score is None:
+    try:
+        score = float(score_str)
+        if 0 <= score <= 1:
+            return score
+        else:
+            print(f"得分{score}超出范围，应该在0到1之间。")
+            return None
+    except ValueError:
+        print(f"无法解析评分：{score_str}")
+        return None
+
+def handle_request(key_statement, output_dir, site, total_papers, user_input):
+    papers = search_papers(key_statement, site, total_papers)
+    print(papers)
+
+    total_score = 0
+    valid_count = 0
+    matching_papers = []
+
+    print("正在计算内容匹配度...")
+    for paper in papers:
+        score = score_abstract_with_zhipuai(paper['abstract'], user_input)
+        if score is not None:
+            print(f"论文标题: {paper['title']}, 相关性评分: {score}")
+            total_score += score
+            valid_count += 1
+            matching_papers.append((paper, score))
+
+    if valid_count > 0:
+        average_score = total_score / valid_count
+    else:
         print("未能计算平均评分。")
         return []
 
-    matching_papers = []
+    matching_papers_above_average = [paper for paper, score in matching_papers if score > average_score]
 
-    for paper in papers:
-        score = score_abstract_with_zhipuai(paper['abstract'], user_input)
-        
-        if score is not None and score > average_score:  # 如果评分高于平均分，加入下载列表
-            matching_papers.append(paper)
-    
-    print(f"找到 {len(matching_papers)} 篇与'{user_input}'相关且智谱AI评分高于平均分的论文。")
-    
+    print(f"找到 {len(matching_papers_above_average)} 篇与'{key_statement}'相关且智谱AI评分高于平均分的论文。")
+
     downloaded_files = []
     # 在下载新的文件之前清空文件夹内容
     clear_output_directory(output_dir)
-    for paper in matching_papers:
+    for paper in matching_papers_above_average:
         if paper['url'] != 'No URL available':
             filename = download_paper(paper['url'], output_dir, paper['title'], paper['year'])
             if filename:
                 downloaded_files.append(filename)
-            time.sleep(0.5)  # 每次下载后休眠0.5秒
-    
+            time.sleep(0.6)  # 每次下载后休眠0.5秒
+
     return downloaded_files
 
 
@@ -223,7 +215,7 @@ def main():
             示例：在使用KNN算法预测过程中，如何根据当前样本的情况动态地调整 K 值？
             回答：dynamic adjustment of K in KNN algorithm
             示例：提高大模型RAG效果的方法有哪些？
-            回答：improve llm RAG performance
+            回答：0improve llm RAG performance
             \n```<{user_input}>```\n
             """
     try:
@@ -231,7 +223,7 @@ def main():
         print(f"智能体生成的关键语句：\n{key_statement}")
 
         # 通过handle_request函数进行论文检索和下载
-        downloaded_files = handle_request(key_statement, output_dir, site, total_papers)
+        downloaded_files = handle_request(key_statement, output_dir, site, total_papers, user_input)
         if downloaded_files:
             print("下载完成的论文文件：", downloaded_files)
     except Exception as e:

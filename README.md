@@ -24,8 +24,10 @@ pip 和 conda 源配置查看此文：[anaconda 环境管理](https://www.yuque.
 
 1. 首先运行大模型科学检索文件
    这个文件用来根据用户问题搜索和下载文献
+   下载好的 pdf 会存入当前目录下的 papers 文件夹中
 2. 然后运行 embedding 文件，将 pdf 文件嵌入到向量数据库
+   这个数据库会建立在当前目录下的 vector_db 文件夹中
 3. 最后运行检索问答文件，能得到经过 rag 之后的回答。
 
-zhipuai_embedding 文件使用 langchain 来封装智谱的向量嵌入 api
+zhipuai_embedding 文件使用 langchain 来封装智谱的向量嵌入 api  
 zhipuai_llm 文件定义了一个 ZhipuAILLM 类，继承自 LLM，用于调用智谱 AI 的对话模型。

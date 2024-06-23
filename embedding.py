@@ -36,16 +36,10 @@ for file_path in file_paths:
 
 # 下载文件并存储到text
 texts = []
-
 for loader in loaders: texts.extend(loader.load())
 
-text = texts[1]
-print(f"每一个元素的类型：{type(text)}.", 
-    f"该文档的描述性数据：{text.metadata}", 
-    f"查看该文档的内容:\n{text.page_content[0:]}", 
-    sep="\n------\n")
-
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import FAISS
 
 # 切分文档
 text_splitter = RecursiveCharacterTextSplitter(
@@ -59,7 +53,7 @@ from zhipuai_embedding import ZhipuAIEmbeddings
 embedding = ZhipuAIEmbeddings()
 
 # 定义持久化路径
-persist_directory = './vector_db/chroma'
+persist_directory = './vector_db/faiss_index'
 def clear_persist_directory(directory):
     """
     清空并重新创建指定文件夹中的所有内容。
@@ -73,14 +67,10 @@ def clear_persist_directory(directory):
 # 清空持久化路径
 clear_persist_directory(persist_directory)
 
-from langchain.vectorstores.chroma import Chroma
-
-vectordb = Chroma.from_documents(
-    documents=split_docs[:], # 为了速度，只选择前 20 个切分的 doc 进行生成；使用千帆时因QPS限制，建议选择前 5 个doc
+vectordb = FAISS.from_documents(
+    documents=split_docs, # 为了速度，只选择前 20 个切分的 doc 进行生成；使用千帆时因QPS限制，建议选择前 5 个doc
     embedding=embedding,
-    persist_directory=persist_directory  # 允许我们将persist_directory目录保存到磁盘上
 )
 
-vectordb.persist()
-
-print(f"向量库中存储的数量：{vectordb._collection.count()}")
+vectordb.save_local("vector_db/faiss_index")
+print("向量库索引建立成功")
