@@ -49,43 +49,40 @@ memory = ConversationBufferMemory(memory_key="chat_history", return_messages=Tru
 
 # 创建一个 PromptTemplate
 prompt_template = """
-你是一个知识丰富的助手，可以回答用户提出的各种问题。以下是用户的聊天历史记录和新问题：
-
-聊天历史记录：
-{chat_history}
+你是一个知识丰富的助手，可以回答用户提出的各种问题。以下使用```包围起来的是用户提问的上下文和问题：
 
 上下文：
-{context}
+```{context}```
 
-新问题：
-{question}
+问题：
+```{question}```
 
-请根据聊天历史记录和新问题，整合你自身生成的内容和通过RAG检索到的英文信息，提供详细且准确的回答，并用中文回答。
+请根据用户的聊天历史记录和提出的问题，综合你自己生成的内容和通过RAG检索到的英文信息，以详细且准确的方式回答，并注明检索到的信息的文章来源，最后用中文回答。
 """
 chat_history = []
 PROMPT = PromptTemplate(
-    input_variables=["chat_history", "question","context"],
+    input_variables=["question","context"],
     template=prompt_template
 )
 
-from langchain.chains import ConversationalRetrievalChain
+#from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import RetrievalQA
 
-retriever=vectordb.as_retriever(prompt=PROMPT,search_kwargs={"k": 3})
+retriever=vectordb.as_retriever(search_kwargs={"k": 3})
 
-qa = ConversationalRetrievalChain.from_llm(
-    llm,
-    chain_type="stuff",
-    retriever=retriever,
-    memory=memory,
-)
+chain_type_kwargs = {"prompt": PROMPT}
+
+qa = RetrievalQA.from_chain_type(
+    llm=llm, 
+    chain_type="stuff", 
+    retriever=retriever, 
+    chain_type_kwargs=chain_type_kwargs,
+    return_source_documents=True
+    )
 
 query = input("请输入你的问题:\n")
-result = qa({"question": query})
-# 提取主要的回答和需要的其他信息
-# 打印回答
-print(result['answer'])
-
-
+result = qa({"query": query})
+print(result["result"])
 
 # question2 = "Introduction to the principles and improvements of these algorithms"
 # result = qa({"question": question2})
