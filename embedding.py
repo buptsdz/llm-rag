@@ -25,6 +25,7 @@ for root, dirs, files in os.walk(folder_path):
 print(f"文件路径已获取")
 
 # 遍历文件路径并把实例化的loader存放在loaders里
+#加载pdf的方法：https://python.langchain.com/v0.2/docs/how_to/document_loader_pdf/
 loaders = []
 for file_path in file_paths:
     file_type = file_path.split('.')[-1]
@@ -41,7 +42,7 @@ for loader in loaders:
 print(f"文档已加载：{len(texts)} 个文档")
 
 # 切分文档
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=3000, chunk_overlap=200)
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=120)
 split_docs = text_splitter.split_documents(texts)
 print(f"文档已切分：{len(split_docs)} 个切片")
 
@@ -70,6 +71,7 @@ vectordb = FAISS.from_documents(
     documents=split_docs,
     embedding=embedding,
 )
+
 vectordb.save_local("vector_db/faiss_index")
 print("向量库索引建立成功")
 
