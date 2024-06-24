@@ -17,7 +17,7 @@ persist_directory = './vector_db/faiss_index'
 
 from langchain.vectorstores import FAISS
 # 加载数据库
-vectordb = FAISS.load_local(persist_directory, embedding,allow_dangerous_deserialization=True)
+vectordb = FAISS.load_local(persist_directory, embedding, allow_dangerous_deserialization=True)
 
 # question = "What is the KNN algorithm?"
 # docs = vectordb.similarity_search(question,k=3)
@@ -57,7 +57,7 @@ prompt_template = """
 问题：
 ```{question}```
 
-请根据用户的聊天历史记录和提出的问题，综合你自己生成的内容和通过RAG检索到的英文信息，以详细且准确的方式回答，并注明检索到的信息的文章来源，最后用中文回答。
+请根据用户的聊天历史记录和提出的问题，综合你自己生成的内容和通过RAG检索到的英文信息，以准确、详细、丰富的方式回答，并注明检索到的信息来源，最后用中文回答。
 """
 chat_history = []
 PROMPT = PromptTemplate(
@@ -68,7 +68,11 @@ PROMPT = PromptTemplate(
 #from langchain.chains import ConversationalRetrievalChain
 from langchain.chains import RetrievalQA
 
-retriever=vectordb.as_retriever(search_kwargs={"k": 3})
+#如何实例化一个向量数据库为检索器https://python.langchain.com/v0.2/docs/how_to/vectorstore_retriever/
+retriever=vectordb.as_retriever(
+    search_kwargs={"k": 5},
+    search_type="mmr"
+)
 
 chain_type_kwargs = {"prompt": PROMPT}
 
@@ -89,15 +93,15 @@ print(result["result"])
 # print(result['answer'])
 
 
+
+# ## 基于大模型的问答
 # prompt_template = """请回答下列问题:
 #                             {}""".format(question_1)
-
-# ### 基于大模型的问答
 # result=llm.invoke(prompt_template)
 # print(result)
-# prompt_template = """请回答下列问题:
-#                             {}""".format(question1)
 
-# ### 基于大模型的问答
+
+# prompt_template = """请回答下列问题:
+#                             {}""".format(query)
 # result=llm.invoke(prompt_template)
 # print(result)

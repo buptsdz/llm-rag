@@ -192,7 +192,7 @@ def handle_request(key_statement, output_dir, site, total_papers, user_input):
 def main():
     output_dir = './papers'
     site = "arxiv.org"
-    total_papers = 20
+    total_papers = 35
 
     print("欢迎使用智能论文下载助手！输入exit退出。")
     
