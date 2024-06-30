@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #loading {
+            height: fit-content;
+        }
+
+        /* 加载图标 */
+        .updatehistory {
+            width: 25px;
+            height: 25px;
+            animation: loading 2s;
+            animation-iteration-count: infinite;
+            animation-timing-function: linear;
+            display: none;
+            /* 默认隐藏加载图标 */
+        }
+
+        @keyframes loading {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        #chatbox {
+            width: 50%;
+            margin: 0 auto;
+            padding: 15px;
+            border: 1px solid #ccc;
+            height: 500px;
+            overflow-y: scroll;
+            white-space: normal;
+            /* Allow text to wrap */
+        }
+
+        #chatcontainer {
+            width: 100%;
+        }
+
+        #chatcontainer .message-bot {
+            width: fit-content;
+            display: inline-block;
+            word-wrap: break-word;
+        }
+
+        #chatcontainer .message-nextline {
+            width: 100%;
+        }
+
+        #messageInput {
+            width: 80%;
+            padding: 10px;
+        }
+
+        #sendButton {
+            padding: 10px 20px;
+        }
+
+        .message {
+            padding: 5px;
+        }
+
+        .user {
+            text-align: right;
+            color: blue;
+            word-wrap: break-word;
+            direction: rtl;
+            /* 从右到左显示文本 */
+            unicode-bidi: plaintext;
+            /* 确保文本内各行独立处理 */
+        }
+
+        .bot {
+            text-align: left;
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chatbox">
+        <div id="chatcontainer"></div>
+        <div>
+            <!-- 加载图标 -->
+            {% load static %}
+            <img src="{% static 'api/images/loading.png' %}" class="updatehistory" id="loadingIcon">
+        </div>
+    </div>
+    <input type="text" id="messageInput" placeholder="Type your message here">
+    <button id="sendButton">Send</button>
+
+    <script>
+        // 定义显示加载图标的函数
+        function showLoadingIcon() {
+            const loadingIcon = document.getElementById('loadingIcon');
+            loadingIcon.style.display = 'flex'; // 显示加载图标
+            // 图片加载完成后获取加载图标的高度
+            setTimeout(() => {
+                const chatbox = document.getElementById('chatbox');
+                chatbox.scrollTo({ top: chatbox.scrollHeight + 100, behavior: 'smooth' });
+            }, 50);
+        }
+
+        // 定义隐藏加载图标的函数
+        function hideLoadingIcon() {
+            const loadingIcon = document.getElementById('loadingIcon');
+            loadingIcon.style.display = 'none'; // 隐藏加载图标
+        }
+
+        // Function to generate a random session ID of length 10
+        const sessionId = generateSessionId(10);
+
+        function generateSessionId(length) {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return result;
+        }
+
+        document.getElementById("messageInput").addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();  // Prevent default behavior (submitting form)
+                sendMessage();
+            }
+        });
+
+        document.getElementById("sendButton").onclick = sendMessage;
+
+        function sendMessage() {
+            showLoadingIcon();
+
+            const messageInput = document.getElementById("messageInput");
+            const message = messageInput.value;
+            messageInput.value = "";
+
+            // Display user's message
+            const chatcontainer = document.getElementById("chatcontainer");
+            const userMessage = document.createElement("div");
+            userMessage.className = "message user";
+            userMessage.textContent = message;
+            chatcontainer.appendChild(userMessage);
+
+            // Send message to chatbot
+            fetch("/api/chatbot/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify({
+                    query: message,
+                    session_id: sessionId
+                })
+            })
+                .then(response => {
+                    hideLoadingIcon();
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+
+                    function readStream() {
+                        return reader.read().then(({ done, value }) => {
+                            if (done) {
+                                return;
+                            }
+                            const text = decoder.decode(value, { stream: true });
+
+                            // Display bot's message
+                            const botMessage = document.createElement("div");
+                            botMessage.className = "message-bot";
+                            botMessage.textContent = text;
+                            chatcontainer.appendChild(botMessage);
+                            if (text.includes('\n')) {
+                                // Replace newline characters with <br> tags
+                                const formattedText = '<br>'
+
+                                // Display bot's message
+                                const botMessage = document.createElement("div");
+                                botMessage.className = "message-nextline";
+                                botMessage.innerHTML = formattedText; // Use innerHTML to render <br> tags
+                                chatcontainer.appendChild(botMessage);
+                            }
+                            // Scroll to bottom of chatbox
+                            chatbox.scrollTop = chatbox.scrollHeight;
+
+                            return readStream();
+                        });
+                    }
+
+                    return readStream();
+                })
+                .catch(error => {
+                    console.error('Error reading response stream:', error);
+                });
+        }
+        // 获取名为 csrftoken 的 cookie 值，用于在发送消息给聊天机器人的 AJAX 请求中包含 CSRF token。这
+        //是为了确保每个请求都是合法且安全的。
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        showLoadingIcon();
+
+        // Send initial request when page loads
+        fetch("/api/chatbot/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({
+                hello: "true",
+                session_id: sessionId  // Use constant session ID
+            })
+        })
+            .then(response => {
+                hideLoadingIcon();
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                function readStream() {
+                    return reader.read().then(({ done, value }) => {
+                        if (done) {
+                            return;
+                        }
+                        const text = decoder.decode(value, { stream: true });
+
+                        // Display bot's message
+                        const chatcontainer = document.getElementById("chatcontainer");
+                        const botMessage = document.createElement("div");
+                        botMessage.className = "message-bot";
+                        botMessage.textContent = text;
+                        chatcontainer.appendChild(botMessage);
+
+                        // Scroll to bottom of chatcontainer
+                        chatbox.scrollTop = chatbox.scrollHeight;
+
+                        return readStream();
+                    });
+                }
+
+                return readStream();
+            })
+            .catch(error => {
+                console.error('Error reading response stream:', error);
+            });
+    </script>
+</body>
+
+</html>

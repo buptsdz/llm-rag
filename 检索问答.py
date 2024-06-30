@@ -44,7 +44,7 @@ api_key_zhipu = os.environ["ZHIPUAI_API_KEY"] #填写控制台中获取的 APIKe
 # print(response.content)
 
 #OpenAI
-api_key_openai='填入你的openai api key'
+api_key_openai='在此填入你的OpenAI API Key'
 llm = ChatOpenAI(model_name='gpt-3.5-turbo', api_key=api_key_openai , temperature=0.8)
 response = llm.invoke("你好，请你自我介绍一下！")
 print(response.content)

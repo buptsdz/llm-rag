@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8" />
+    <title>results page</title>
+</head>
+
+<body>
+    <h1>{{ question.question_text }}</h1>
+    <ul>
+        <!-- 对于给定的 question 对象，遍历它关联的所有选项 (Choice 对象) -->
+        {% for choice in question.choice_set.all %}
+        <li>
+            {{ choice.choice_text }} -- {{ choice.votes }}
+            vote{{choice.votes|pluralize }}
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'polls:detail' question.id %}">Vote again?</a>
+</body>
+
+</html>

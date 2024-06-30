@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8" />
+  <title>detail page</title>
+</head>
+
+<body>
+  <!-- 表单开始 -->
+  <form action="{% url 'polls:vote' question.id %}" method="post">
+    {% csrf_token %}
+    <!-- CSRF保护令牌，防止跨站请求伪造 -->
+    <fieldset>
+      <legend>
+        <h1>{{ question.question_text }}</h1>
+      </legend>
+      <!-- 显示问题文本 -->
+      {% if error_message %}
+      <p><strong>{{ error_message }}</strong></p>
+      <!-- 显示错误信息 -->
+      {% endif %}
+      {% for choice in question.choice_set.all %}
+      <!-- 循环遍历问题的选项集合 -->
+      <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" />
+      <!-- 单选框，选项的ID和值 -->
+      <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br />
+      <!-- 选项的文本和标签 -->
+      {% endfor %}
+    </fieldset>
+    <input type="submit" value="Vote" />
+    <!-- 提交按钮 -->
+  </form>
+  <!-- 表单结束 -->
+</body>
+
+</html>
