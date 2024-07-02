@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .service.chatrag import ChatRAGService
 import json
 
-api_key_openai = '填入你的openaikey'
+api_key_openai = '在此填入你的openapikey'
 chatbot_service = ChatRAGService(api_key_openai)
 
 @csrf_exempt

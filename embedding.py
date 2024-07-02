@@ -1,10 +1,10 @@
 import os
 from dotenv import load_dotenv, find_dotenv
 import shutil
-from langchain.document_loaders.pdf import PyMuPDFLoader
+from langchain_community.document_loaders import PyMuPDFLoader
 from langchain.document_loaders.markdown import UnstructuredMarkdownLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from zhipuai_embedding import ZhipuAIEmbeddings
 import faiss
 import numpy as np
@@ -51,28 +51,33 @@ embedding = ZhipuAIEmbeddings()
 print("嵌入模型已加载。")
 
 # 定义持久化路径
-persist_directory = './vector_db/faiss_index'
+persist_directories = ['./vector_db/faiss_index', './mysite/api/service/vector_db/faiss_index']
 
-def clear_persist_directory(directory):
+def clear_persist_directories(directories):
     """
     清空并重新创建指定文件夹中的所有内容。
     """
-    if os.path.exists(directory):
-        shutil.rmtree(directory)  # 删除整个文件夹及其内容
-        print(f"已清空目录：{directory}")
-    os.makedirs(directory)  # 重新创建文件夹
-    print(f"已创建目录：{directory}")
+    for directory in directories:
+        if os.path.exists(directory):
+            shutil.rmtree(directory)  # 删除整个文件夹及其内容
+            print(f"已清空目录：{directory}")
+        os.makedirs(directory)  # 重新创建文件夹
+        print(f"已创建目录：{directory}")
 
 # 清空持久化路径
-clear_persist_directory(persist_directory)
+clear_persist_directories(persist_directories)
 
 ##方法1
+#这一步会比较耗时，大概在3-5分钟左右
 vectordb = FAISS.from_documents(
     documents=split_docs,
     embedding=embedding,
 )
 
-vectordb.save_local("vector_db/faiss_index")
+# 保存向量库索引到不同的路径
+for directory in persist_directories:
+    vectordb.save_local(directory)
+    
 print("向量库索引建立成功")
 
 ##方法2

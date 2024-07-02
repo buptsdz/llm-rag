@@ -4,20 +4,14 @@ from zhipuai_embedding import ZhipuAIEmbeddings
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.vectorstores.chroma import Chroma
 from dotenv import load_dotenv, find_dotenv
-from langchain.vectorstores import FAISS
-from langchain.prompts import PromptTemplate
-from langchain.memory import ConversationBufferMemory
-from zhipuai_llm import ZhipuAILLM
+from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA #这个方法在最新的langchain中已弃用，改为create_retrieval_chain
 from langchain.chains import ConversationalRetrievalChain
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.prompts.chat import MessagesPlaceholder
 import os
-
 
 _ = load_dotenv(find_dotenv())    # read local .env file
 
@@ -44,7 +38,7 @@ api_key_zhipu = os.environ["ZHIPUAI_API_KEY"] #填写控制台中获取的 APIKe
 # print(response.content)
 
 #OpenAI
-api_key_openai='在此填入你的OpenAI API Key'
+api_key_openai='在此填入你的openapikey'
 llm = ChatOpenAI(model_name='gpt-3.5-turbo', api_key=api_key_openai , temperature=0.8)
 response = llm.invoke("你好，请你自我介绍一下！")
 print(response.content)
