@@ -11,12 +11,12 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 
 class ChatRAGService:
-    def __init__(self, api_key_openai):
+    def __init__(self, api_key_openai, base_url):
         self.api_key_openai = api_key_openai
         self.embedding = ZhipuAIEmbeddings()
         self.dbpath = 'api/service/vector_db/faiss_index' #根据managy.py所在目录为根目录确定
         self.vectordb = FAISS.load_local(self.dbpath, self.embedding, allow_dangerous_deserialization=True)
-        self.llm = ChatOpenAI(model_name='gpt-3.5-turbo', api_key=api_key_openai, temperature=0.75)
+        self.llm = ChatOpenAI(model_name='gpt-3.5-turbo', api_key=api_key_openai, base_url=base_url , temperature=0.75)
         self.parser = StrOutputParser()
         
         self.retriever = self.vectordb.as_retriever(search_kwargs={"k": 10})
