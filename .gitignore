@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 test/
 .vscode
-.env
 .idea
+*.env
 apikey
+cache/

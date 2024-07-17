@@ -15,7 +15,7 @@ conda activate llm-rag
 切换到 readme 文件所在目录后执行
 
 ```python
-pip install -r requirements_20240703.txt #2024/7/3修复依赖不全的问题
+pip install -r requirements_20240703.txt
 ```
 
 pip 和 conda 源配置查看此文：[anaconda 环境管理](https://www.yuque.com/u39067637/maezfz/syzlisxdbqmp7k6s)
@@ -54,3 +54,11 @@ zhipuai_llm 文件定义了一个 ZhipuAILLM 类，继承自 LLM，用于调用�
 #### 注：
 
 目前网页中运行效果好于命令行中的，代码有所改动
+
+### 3.graphRAG
+
+在 graphRAG 文件夹下，需要额外下载  
+
+```python
+pip install graphrag
+```
