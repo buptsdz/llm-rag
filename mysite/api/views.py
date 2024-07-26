@@ -3,13 +3,23 @@ from django.views.decorators.csrf import csrf_exempt
 from .service.chatrag import ChatRAGService
 import json
 import openai
+from zhipuai import ZhipuAI
+import os
+from dotenv import load_dotenv, find_dotenv
 
-api_key_openai = ''
-#填入apikey的地址
-temp_url = ''
-#定义默认地址
-base_url = temp_url if temp_url else 'https://api.openai.com'
-chatbot_service = ChatRAGService(api_key_openai,base_url)
+#定义嵌入模型的client
+_ = load_dotenv(find_dotenv()) # 读取 .env 文件
+client = ZhipuAI(api_key=os.environ["ZHIPUAI_API_KEY"])
+
+# 定义默认参数
+params = {
+    'api_key_openai': '',
+    'base_url': 'https://api.openai.com/v1',
+    'model': 'gpt-3.5-turbo'
+}
+
+# 实例化 ChatRAGService 类时传入参数字典
+chatbot_service = ChatRAGService(**params)
 
 @csrf_exempt
 def chatbot_view(request):

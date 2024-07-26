@@ -35,7 +35,7 @@
             margin: 0 auto;
             padding: 15px;
             border: 1px solid #ccc;
-            height: 500px;
+            height: 800px;
             overflow-y: scroll;
             white-space: normal;
             /* Allow text to wrap */
@@ -45,7 +45,15 @@
             width: 100%;
         }
 
-        #chatcontainer .message-bot {
+        .container-bot {
+            width: 90%;
+            background-color: #e4d8d896;
+            border-radius: 10px;
+            min-height: 25px;
+            padding: 10px;
+        }
+
+        .container-bot .message-bot {
             width: fit-content;
             display: inline-block;
             word-wrap: break-word;
@@ -65,12 +73,18 @@
         }
 
         .message {
-            padding: 5px;
+            padding: 10px;
         }
 
         .user {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            margin-left: 10%;
+            width: 87%;
+            background-color: #c4c2d096;
+            border-radius: 10px;
+            height: fit-content;
             text-align: right;
-            color: blue;
             word-wrap: break-word;
             direction: rtl;
             /* 从右到左显示文本 */
@@ -167,6 +181,11 @@
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
 
+                    const chatcontainer = document.getElementById("chatcontainer");
+                    const botcontainers = document.createElement("div");
+                    botcontainers.className = "container-bot";
+                    chatcontainer.appendChild(botcontainers);
+
                     function readStream() {
                         return reader.read().then(({ done, value }) => {
                             if (done) {
@@ -178,7 +197,8 @@
                             const botMessage = document.createElement("div");
                             botMessage.className = "message-bot";
                             botMessage.textContent = text;
-                            chatcontainer.appendChild(botMessage);
+                            botcontainers.appendChild(botMessage);
+
                             if (text.includes('\n')) {
                                 // Replace newline characters with <br> tags
                                 const formattedText = '<br>'
@@ -187,7 +207,7 @@
                                 const botMessage = document.createElement("div");
                                 botMessage.className = "message-nextline";
                                 botMessage.innerHTML = formattedText; // Use innerHTML to render <br> tags
-                                chatcontainer.appendChild(botMessage);
+                                botcontainers.appendChild(botMessage);
                             }
                             // Scroll to bottom of chatbox
                             chatbox.scrollTop = chatbox.scrollHeight;
@@ -238,6 +258,11 @@
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
 
+                const chatcontainer = document.getElementById("chatcontainer");
+                const botcontainers = document.createElement("div");
+                botcontainers.className = "container-bot";
+                chatcontainer.appendChild(botcontainers);
+
                 function readStream() {
                     return reader.read().then(({ done, value }) => {
                         if (done) {
@@ -246,11 +271,10 @@
                         const text = decoder.decode(value, { stream: true });
 
                         // Display bot's message
-                        const chatcontainer = document.getElementById("chatcontainer");
                         const botMessage = document.createElement("div");
                         botMessage.className = "message-bot";
                         botMessage.textContent = text;
-                        chatcontainer.appendChild(botMessage);
+                        botcontainers.appendChild(botMessage);
 
                         // Scroll to bottom of chatcontainer
                         chatbox.scrollTop = chatbox.scrollHeight;
