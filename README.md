@@ -15,7 +15,7 @@ conda activate llm-rag
 切换到 readme 文件所在目录后执行
 
 ```python
-pip install -r requirements_20240703.txt
+pip install -r requirements_20240809.txt
 ```
 
 pip 和 conda 源配置查看此文：[anaconda 环境管理](https://www.yuque.com/u39067637/maezfz/syzlisxdbqmp7k6s)
@@ -52,12 +52,12 @@ zhipuai_llm 文件定义了一个 ZhipuAILLM 类，继承自 LLM，用于调用�
    ```
 4. 打开浏览器，访问 http://127.0.0.1:8000/api/chat
 
-目前网页中运行的是已经完成了向量的嵌入的，当前 rag 的关键词是"纳米金和核酸适配体"
+目前网页中运行的是已经完成了向量的嵌入的，当前 RAG 的关键词是"纳米金和核酸适配体"
 
 #### 注：
 
-目前网页中运行效果好于命令行中的，代码有所改动
-当前用的 pdf 的 embedding 模型是智谱的
+目前网页中运行效果好于命令行中的，代码有所改动  
+当前用的 pdf 的 embedding 模型是智谱的  
 **搜索文档和生成向量数据库的步骤依然需要手动执行，即“命令行运行”中的步骤 1 和步骤 2。**
 
 ### 3.graphRAG
