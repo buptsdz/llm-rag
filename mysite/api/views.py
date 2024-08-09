@@ -11,11 +11,15 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # 读取 .env 文件
 client = ZhipuAI(api_key=os.environ["ZHIPUAI_API_KEY"])
 
+api_key_openai = os.environ["OPENAI_API_KEY"]
+base_url = os.environ["OPENAI_API_BASE_URL"]
+model = os.environ["OPENAI_API_MODEL"]
+
 # 定义默认参数
 params = {
-    'api_key_openai': '',
-    'base_url': '',
-    'model': ''
+    'api_key_openai': api_key_openai,
+    'base_url': base_url,
+    'model': model
 }
 
 # 实例化 ChatRAGService 类时传入参数字典

@@ -1,6 +1,0 @@
-openai：
-qhq: sk-proj-HwU0Ob8XFuksvOY26fQgT3BlbkFJo43ONtPAw5r1dJ6KZ6Xl
-sk-proj-uYoAzDESJSRUHOPfG4XeT3BlbkFJ9kIEEuHnc9oFixb0RDqf
-
-上海 AIlab：
-sk-974dZPDcUMXQB7no93D6Ce62EeF942D494D5Ab16D9E79435 url：https://api.chatweb.plus/v1
