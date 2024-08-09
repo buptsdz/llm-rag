@@ -14,8 +14,8 @@ client = ZhipuAI(api_key=os.environ["ZHIPUAI_API_KEY"])
 # 定义默认参数
 params = {
     'api_key_openai': '',
-    'base_url': 'https://api.openai.com/v1',
-    'model': 'gpt-3.5-turbo'
+    'base_url': '',
+    'model': ''
 }
 
 # 实例化 ChatRAGService 类时传入参数字典
