@@ -131,9 +131,9 @@ from langchain.chains import create_history_aware_retriever, create_retrieval_ch
 from langchain import hub
 
 contextualize_q_system_prompt = (
-    "根据聊天记录和最新的用户问题"
-    "可以引用聊天记录中的上下文"
-    "提出一个可以理解的独立问题"
+    "Based on the chat history and the latest user question,"
+    "you can refer to the context in the chat history"
+    "to propose a comprehensible standalone question."
 )
 
 contextualize_q_prompt = ChatPromptTemplate.from_messages(
@@ -161,13 +161,12 @@ def get_session_history(session_id: str) -> BaseChatMessageHistory:
     return store[session_id]
 
 prompt_template = (
-'根据用户的问题，你需要使用下面给出的与问题匹配的RAG检索信息，并辅以你自己生成的内容进行回答。'
-'如果使用到了下面提供的检索信息，你需要指出你是根据检索的信息给出的回答。'
-'如果下面的检索信息不符合用户的提问时，你需要指出未找到符合条件的检索信息，然后你需要自己针对新问题生成内容。'
-'以准确、详细的方式分点回答'
-'最后使用中文回答。'
-'\n检索到的信息：\n'
-'{context}'
+    'Based on the user\'s question, use the following RAG retrieval information and your generated content to answer:\n'
+    '1. If retrieval information is used, please indicate the source.\n'
+    '2. If the retrieval information does not match the question, please explain and generate a new answer.\n'
+    '3. The answer should be accurate, detailed, and in Chinese.\n'
+    '\nRetrieved information:\n'
+    '{context}'
 )
 
 prompt = ChatPromptTemplate.from_messages([

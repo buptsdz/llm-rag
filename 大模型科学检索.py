@@ -8,6 +8,7 @@ from tqdm import tqdm
 import time
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+from requests.exceptions import RequestException
 
 # 读取本地/项目的环境变量
 _ = load_dotenv(find_dotenv())
@@ -20,6 +21,9 @@ def gen_glm_params(prompt):
     return messages
 
 def get_completion(prompt, model="glm-4", temperature=0.95):
+    '''
+    使用智谱AI的API生成query关键词
+    '''
     messages = gen_glm_params(prompt)
     response = client.chat.completions.create(
         model=model,
@@ -50,20 +54,25 @@ def search_papers(query, site, total_papers):
                 # 确保论文来自指定的网站
                 if site in paper['pub_url']:
                     # 只保存标题、摘要、URL和出版年份
-                    papers.append({
-                        'title': paper['bib']['title'],
-                        'abstract': paper['bib'].get('abstract', 'No abstract available'),
-                        'url': paper.get('pub_url', 'No URL available'),
-                        'year': paper['bib'].get('pub_year', None)
-                    })
+                    try:
+                        papers.append({
+                            'title': paper['bib']['title'],
+                            'abstract': paper['bib'].get('abstract', 'No abstract available'),
+                            'url': paper.get('pub_url', 'No URL available'),
+                            'year': paper['bib'].get('pub_year', None)
+                        })
+                    except KeyError as e:
+                        print(f"处理论文时出现键错误: {e}")
+                        continue  # 发生错误时跳过当前论文
 
                     # 更新进度条
                     pbar.update(1)
                     if i >= total_papers:
                         break
 
-    except KeyError:
-        pass
+    except RequestException as e:
+        print(f"搜索请求失败: {e}")
+        return []  # 网络请求失败时返回空列表
 
     # 按出版年份对结果进行排序，年份越新越靠前
     papers.sort(key=lambda x: x['year'] if x['year'] is not None else -float('inf'), reverse=True)
@@ -73,6 +82,9 @@ def search_papers(query, site, total_papers):
     return papers
 
 def sanitize_filename(filename):
+    '''
+    将文件名中的非字母数字字符替换为下划线
+    '''
     return "".join([c if c.isalnum() else "_" for c in filename])
 
 def download_paper(url, output_dir, paper_title, year):
@@ -203,19 +215,19 @@ def main():
         sys.exit(0)
 
     # 提炼用户输入，作为生成关键语句的提示
-    prompt = f"请\n\n<{user_input}>\n\n"
+    prompt = f"Please\n\n<{user_input}>\n\n"
     prompt = f"""
-            你的任务是：阅读下面用```包围起来的问题或主题,然后你需要从论文关键词的角度给出1个最能体现这句话核心思想的英文关键词，不需要其他语句或编号：
-            示例：我想知道6G技术在信道编码上的突破。
-            回答：channel coding in 6G
-            示例：我想知道一些关于数字水印的技术以及算法。
-            回答：digital watermarking
-            示例：我想知道RNA在基因表达中起什么作用？
-            回答：RNA and gene expression
-            示例：在使用KNN算法预测过程中，如何根据当前样本的情况动态地调整 K 值？
-            回答：dynamic adjustment of K in KNN algorithm
-            示例：提高大模型RAG效果的方法有哪些？
-            回答：0improve llm RAG performance
+            Your task is to read the question or topic enclosed in ``` below, and then provide one English keyword that best captures the core idea of the sentence from the perspective of paper keywords. No other sentences or numbers are needed:
+            Example: I want to know the breakthroughs in channel coding for 6G technology.
+            Answer: channel coding in 6G
+            Example: I want to know some technologies and algorithms about digital watermarking.
+            Answer: digital watermarking
+            Example: I want to know the role of RNA in gene expression.
+            Answer: RNA and gene expression
+            Example: How to dynamically adjust the K value according to the current sample situation during the prediction process using the KNN algorithm?
+            Answer: dynamic adjustment of K in KNN algorithm
+            Example: What are the methods to improve the performance of large model RAG?
+            Answer: improve llm RAG performance
             \n```<{user_input}>```\n
             """
     try:
