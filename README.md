@@ -1,3 +1,6 @@
+## 更新日期
+2024.11.15
+
 ## 安装依赖
 
 创建 conda 虚拟环境
@@ -23,7 +26,7 @@ pip 和 conda 源配置查看此文：[anaconda 环境管理](https://www.yuque.
 ## 运行环境
 
 vscode + python 插件 + anaconda虚拟环境  
-需要打开代理，代理到能使用 openai 的地区
+使用openai的api的话，需要打开代理，代理到能使用 openai 的地区
 
 ## 运行代码
 
