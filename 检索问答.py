@@ -6,49 +6,53 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv, find_dotenv
 from langchain_community.vectorstores import FAISS
-from langchain.chains import RetrievalQA #这个方法在最新的langchain中已弃用，改为create_retrieval_chain
+from langchain.chains import (
+    RetrievalQA,
+)  # 这个方法在最新的langchain中已弃用，改为create_retrieval_chain
 from langchain.chains import ConversationalRetrievalChain
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.prompts.chat import MessagesPlaceholder
 import os
 
-_ = load_dotenv(find_dotenv())    # read local .env file
+_ = load_dotenv(find_dotenv())  # read local .env file
 
 # 定义 Embeddings
 embedding = ZhipuAIEmbeddings()
 
 # 向量数据库持久化路径
-persist_directory = './vector_db/faiss_index'
+persist_directory = "./vector_db/faiss_index"
 
 # 加载数据库
-vectordb = FAISS.load_local(persist_directory, embedding, allow_dangerous_deserialization=True)
+vectordb = FAISS.load_local(
+    persist_directory, embedding, allow_dangerous_deserialization=True
+)
 
 # 获取环境变量 API_KEY
-api_key_zhipu = os.environ["ZHIPUAI_API_KEY"] #填写控制台中获取的 APIKey 信息
+api_key_zhipu = os.environ["ZHIPUAI_API_KEY"]  # 填写控制台中获取的 APIKey 信息
 
-#智谱
+# 智谱
 # llm = ZhipuAILLM(model="GLM-3-Turbo", temperature=0.5, api_key=api_key_zhipu)
 # response = llm.invoke("你好，请你自我介绍一下！")
 # print(response)
 
-#书生浦语
+# 书生浦语
 # llm = ChatOpenAI(model='AI4Chem/ChemLLM-20B-Chat-DPO', base_url="https://api.chemllm.org/v1", openai_api_key='123')
 # response = llm.invoke("你好，请你自我介绍一下！")
 # print(response.content)
 
-#OpenAI
-api_key_openai='在此填入你的openapikey'
-llm = ChatOpenAI(model_name='gpt-3.5-turbo', api_key=api_key_openai , temperature=0.8)
+# OpenAI
+api_key_openai = "在此填入你的openapikey"
+llm = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=api_key_openai, temperature=0.8)
 response = llm.invoke("你好，请你自我介绍一下！")
 print(response.content)
 
-#如何实例化一个向量数据库为检索器https://python.langchain.com/v0.2/docs/how_to/vectorstore_retriever/
-retriever=vectordb.as_retriever(
+# 如何实例化一个向量数据库为检索器https://python.langchain.com/v0.2/docs/how_to/vectorstore_retriever/
+retriever = vectordb.as_retriever(
     search_kwargs={"k": 10},
 )
 
-#memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+# memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 ##方法一
 # # 创建一个 PromptTemplate
@@ -72,9 +76,9 @@ retriever=vectordb.as_retriever(
 # chain_type_kwargs = {"prompt": PROMPT}
 
 # qa = RetrievalQA.from_chain_type(
-#     llm=llm, 
-#     chain_type="stuff", 
-#     retriever=retriever, 
+#     llm=llm,
+#     chain_type="stuff",
+#     retriever=retriever,
 #     chain_type_kwargs=chain_type_kwargs,
 #     return_source_documents=True
 #     )
@@ -84,7 +88,7 @@ retriever=vectordb.as_retriever(
 # print(result["result"])
 
 ##方法二，单轮回答
-#RAG简单实现：https://python.langchain.com/v0.2/docs/tutorials/rag/#go-deeper-4
+# RAG简单实现：https://python.langchain.com/v0.2/docs/tutorials/rag/#go-deeper-4
 
 # prompt_template = '''
 # 下面使用```包围起来的是检索到的英文上下文信息和用户的提问。
@@ -125,8 +129,8 @@ retriever=vectordb.as_retriever(
 #     print(chunk, end="", flush=True)
 
 
-#方法3，多轮回答流式输出
-#https://python.langchain.com/v0.2/docs/tutorials/qa_chat_history/#tying-it-together
+# 方法3，多轮回答流式输出
+# https://python.langchain.com/v0.2/docs/tutorials/qa_chat_history/#tying-it-together
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain import hub
 
@@ -155,47 +159,51 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
+
 def get_session_history(session_id: str) -> BaseChatMessageHistory:
     if session_id not in store:
         store[session_id] = ChatMessageHistory()
     return store[session_id]
 
+
 prompt_template = (
-    'Based on the user\'s question, use the following RAG retrieval information and your generated content to answer:\n'
-    '1. If retrieval information is used, please indicate the source.\n'
-    '2. If the retrieval information does not match the question, please explain and generate a new answer.\n'
-    '3. The answer should be accurate, detailed, and in Chinese.\n'
-    '\nRetrieved information:\n'
-    '{context}'
+    "Based on the user's question, use the following RAG retrieval information and your generated content to answer:\n"
+    "1. If retrieval information is used, please indicate the source.\n"
+    "2. If the retrieval information does not match the question, please explain and generate a new answer.\n"
+    "3. The answer should be accurate, detailed, and in Chinese.\n"
+    "\nRetrieved information:\n"
+    "{context}"
 )
 
-prompt = ChatPromptTemplate.from_messages([
-    ("system", prompt_template),
-    MessagesPlaceholder("history"),
-    ("human", "{input}"),
-])
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", prompt_template),
+        MessagesPlaceholder("history"),
+        ("human", "{input}"),
+    ]
+)
 
 question_answer_chain = create_stuff_documents_chain(llm, prompt)
 chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
 
 chain_with_history = RunnableWithMessageHistory(
-    chain, 
+    chain,
     get_session_history,
     input_messages_key="input",
     history_messages_key="history",
-    output_messages_key="answer",#我也不知道为什么要加这行
-    )
+    output_messages_key="answer",  # 我也不知道为什么要加这行
+)
 
 while True:
     query = input("\n请输入你的问题:\n")
     messages = {"input": query}
     config = {"configurable": {"session_id": "abc123"}}
-    
+
     # 处理流式输出
     for chunk in chain_with_history.stream(messages, config=config):
-        if 'answer' in chunk:
+        if "answer" in chunk:
             # 仅打印 "answer" 字段的值，不添加额外的字符
-            print(chunk['answer'], end="", flush=True)
+            print(chunk["answer"], end="", flush=True)
 
 
 # 原本大模型的问答

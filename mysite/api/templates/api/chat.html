@@ -79,15 +79,13 @@
         .user {
             margin-top: 15px;
             margin-bottom: 15px;
-            margin-left: 10%;
-            width: 87%;
+            margin-left: auto;
+            width: fit-content;
             background-color: #c4c2d096;
             border-radius: 10px;
             height: fit-content;
-            text-align: right;
             word-wrap: break-word;
-            direction: rtl;
-            /* 从右到左显示文本 */
+            max-width: 80%;
             unicode-bidi: plaintext;
             /* 确保文本内各行独立处理 */
         }
@@ -108,8 +106,34 @@
             <img src="{% static 'api/images/loading.png' %}" class="updatehistory" id="loadingIcon">
         </div>
     </div>
-    <input type="text" id="messageInput" placeholder="Type your message here">
-    <button id="sendButton">Send</button>
+    <div style="display: flex; justify-content: center; gap: 10px; margin: 20px auto; max-width: 600px;margin-bottom:40px">
+        <input 
+            style="
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            width: 80%;
+            outline: none;
+            " 
+            type="text" 
+            id="messageInput" 
+            placeholder="Type your message here"
+        >
+        <button 
+            style="
+            padding: 10px 25px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+            " 
+            id="sendButton"
+        >
+            Send
+        </button>
+    </div>
 
     <script>
         // 定义显示加载图标的函数
@@ -186,36 +210,33 @@
                     botcontainers.className = "container-bot";
                     chatcontainer.appendChild(botcontainers);
 
+                    let currentBotMessage = null; // 用于跟踪当前的消息块
+
                     function readStream() {
                         return reader.read().then(({ done, value }) => {
                             if (done) {
+                                currentBotMessage = null; // 流结束时重置
                                 return;
                             }
                             const text = decoder.decode(value, { stream: true });
+                            const formattedText = text.replace(/\n/g, '<br>'); // 换行符替换为 HTML 标签
 
-                            // Display bot's message
-                            const botMessage = document.createElement("div");
-                            botMessage.className = "message-bot";
-                            botMessage.textContent = text;
-                            botcontainers.appendChild(botMessage);
-
-                            if (text.includes('\n')) {
-                                // Replace newline characters with <br> tags
-                                const formattedText = '<br>'
-
-                                // Display bot's message
-                                const botMessage = document.createElement("div");
-                                botMessage.className = "message-nextline";
-                                botMessage.innerHTML = formattedText; // Use innerHTML to render <br> tags
-                                botcontainers.appendChild(botMessage);
+                            // 如果没有正在处理的消息块，则创建新块
+                            if (!currentBotMessage) {
+                                currentBotMessage = document.createElement("div");
+                                currentBotMessage.className = "message-bot";
+                                botcontainers.appendChild(currentBotMessage);
                             }
-                            // Scroll to bottom of chatbox
-                            chatbox.scrollTop = chatbox.scrollHeight;
 
-                            return readStream();
+                            // 将处理后的文本追加到当前块
+                            currentBotMessage.innerHTML += formattedText;
+
+                            // 滚动到底部
+                            chatcontainer.scrollTop = chatcontainer.scrollHeight;
+
+                            return readStream(); // 继续读取流
                         });
                     }
-
                     return readStream();
                 })
                 .catch(error => {

@@ -1,3 +1,7 @@
+"""
+使用langchaind的chatopenai实现模型接口
+"""
+
 from langchain_openai import ChatOpenAI
 from .zhipuai_embedding import ZhipuAIEmbeddings
 from langchain.chains import create_retrieval_chain
@@ -10,34 +14,43 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 
+
 class ChatRAGService:
     def __init__(
-        self, 
-        api_key_openai: str, 
-        base_url: str = 'https://api.openai.com/v1', 
-        model: str = 'gpt-3.5-turbo'
+        self,
+        api_key_openai: str,
+        base_url: str = "https://api.openai.com/v1",  # 缺省值，在views.py中传入
+        model: str = "gpt-3.5-turbo",
     ) -> None:
         self.api_key_openai = api_key_openai
         self.embedding = ZhipuAIEmbeddings()
-        self.dbpath = 'api/service/vector_db/faiss_index'  # 根据managy.py所在目录为根目录确定
-        self.vectordb = FAISS.load_local(self.dbpath, self.embedding, allow_dangerous_deserialization=True)
+        self.dbpath = (
+            "api/service/vector_db/faiss_index"  # 根据managy.py所在目录为根目录确定
+        )
+        self.vectordb = FAISS.load_local(
+            self.dbpath, self.embedding, allow_dangerous_deserialization=True
+        )
         self.llm = ChatOpenAI(
-            model=model, 
-            api_key=api_key_openai, 
-            base_url=base_url, 
-            temperature=0.75
+            model=model, api_key=api_key_openai, base_url=base_url, temperature=0.75
         )
         self.parser = StrOutputParser()
         self.retriever = self.vectordb.as_retriever(search_kwargs={"k": 15})
-        self.contextualize_q_prompt = ChatPromptTemplate.from_messages([
-            ("system", "根据最新的用户问题和聊天记录，可以引用聊天记录中相关的上下文，总结出一个可以理解的问题"),
-            MessagesPlaceholder("history"),
-            ("human", "{input}"),
-        ])
-        self.history_aware_retriever = create_history_aware_retriever(self.llm, self.retriever, self.contextualize_q_prompt)
-        
+        self.contextualize_q_prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "根据最新的用户问题和聊天记录，可以引用聊天记录中相关的上下文，总结出一个可以理解的问题",
+                ),
+                MessagesPlaceholder("history"),
+                ("human", "{input}"),
+            ]
+        )
+        self.history_aware_retriever = create_history_aware_retriever(
+            self.llm, self.retriever, self.contextualize_q_prompt
+        )
+
         self.store = {}
-        
+
         self.prompt_template = (
             "请逐条阅读下面的要求并思考如何回答用户问题。"
             "你是一个基于RAG（检索增强生成）的资料搜索与生成机器人。"
@@ -51,16 +64,20 @@ class ChatRAGService:
             "\n用户的问题：\n"
             "{input}"
         )
-        
-        self.prompt = ChatPromptTemplate.from_messages([
-            ("system", self.prompt_template),
-            MessagesPlaceholder("history"),
-            ("human", "{input}"),
-        ])
-        
+
+        self.prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", self.prompt_template),
+                MessagesPlaceholder("history"),
+                ("human", "{input}"),
+            ]
+        )
+
         self.question_answer_chain = create_stuff_documents_chain(self.llm, self.prompt)
-        self.chain = create_retrieval_chain(self.history_aware_retriever, self.question_answer_chain)
-        
+        self.chain = create_retrieval_chain(
+            self.history_aware_retriever, self.question_answer_chain
+        )
+
         self.chain_with_history = RunnableWithMessageHistory(
             self.chain,
             self.get_session_history,
@@ -74,10 +91,11 @@ class ChatRAGService:
             self.store[session_id] = ChatMessageHistory()
         return self.store[session_id]
 
-    def get_response_stream(self, query, session_id='default_session'):
+    def get_response_stream(self, query, session_id="default_session"):
         messages = {"input": query}
         config = {"configurable": {"session_id": session_id}}
 
         for chunk in self.chain_with_history.stream(messages, config=config):
-            if 'answer' in chunk:
-                yield chunk['answer']
+            # print(chunk)
+            if "answer" in chunk:
+                yield chunk["answer"]

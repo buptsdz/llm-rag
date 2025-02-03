@@ -1,5 +1,5 @@
 ## 更新日期
-2024.11.15
+2025.2.3
 
 ## 安装依赖
 
@@ -26,7 +26,7 @@ pip 和 conda 源配置查看此文：[anaconda 环境管理](https://www.yuque.
 ## 运行环境
 
 vscode + python 插件 + anaconda虚拟环境  
-使用openai的api的话，需要打开代理，代理到能使用 openai 的地区
+使用openai的api的话，需要打开代理，连接到能使用 openai 的地区
 
 ## 运行代码
 
@@ -44,16 +44,16 @@ zhipuai_llm 文件定义了一个 ZhipuAILLM 类，继承自 LLM，用于调用�
 
 ### 2.网页中运行
 
-1. 根目录下新建.env 文件，按如下格式填写 api 信息
-   ![alt text](envimage.png)
-   导入 apikey 信息的页面为 mysite/api/views.py
-2. 切换目录至 mysite 文件夹下（manage.py 文件所在目录）（polls 目录是学习测试用的）  
-   主要代码在**mysite/api**文件夹中
-3. 运行命令：
+1. 根目录下新建.env 文件，按如下格式填写 api 信息  
+   ![alt text](envimage.png)  
+   导入 apikey 信息的文件为 mysite/api/views.py
+2. 切换目录至 mysite 文件夹下（manage.py 文件所在目录）  
+   主要代码在**mysite/api**文件夹中  
+3. 运行命令：在mysite目录下  
    ```
-   python manage.py runserver
+   python manage.py runserver 5000
    ```
-4. 打开浏览器，访问 http://127.0.0.1:8000/api/chat
+4. 打开浏览器，访问 http://127.0.0.1:5000/api/chat
 
 目前网页中运行的是已经完成了向量的嵌入的，当前 RAG 的关键词是"纳米金和核酸适配体"
 
